@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "PostPilot",
+  "version": "1.0",
+  "description": "PostPilot is a browser extension that allows users to schedule and automate their social media posts across multiple platforms, helping them maintain a consistent online presence and engage with their audience effectively.",
+  "action": {
+    "default_title": "Open PostPilot"
+  },
+  "options_page": "index.html",
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "background": {
+    "service_worker": "src/background/background.ts"
+  },
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["*://*.linkedin.com/*", "*://*.x.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.linkedin.com/*"],
+      "js": ["src/platforms/linkedin/scrape/post.ts"]
+    },
+    {
+      "matches": ["*://*.x.com/*"],
+      "js": ["src/platforms/twitter/scrape/post.ts"]
+    }
+  ]
+}
