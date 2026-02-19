@@ -65,7 +65,7 @@ PostPilot is a browser extension designed to streamline your social media workfl
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/postpilot.git
+   git clone https://github.com/shub3am/postpilot.git
    cd postpilot/extension
    ```
 
@@ -153,7 +153,7 @@ We welcome contributions from the community! Here's how you can help:
 
 2. **Clone your fork**
    ```bash
-   git clone https://github.com/yourusername/postpilot.git
+   git clone https://github.com/shub3am/postpilot.git
    cd postpilot/extension
    ```
 
