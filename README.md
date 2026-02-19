@@ -277,9 +277,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-- 📧 Email: [your-email@example.com]
-- 💬 GitHub Issues: [Report bugs and request features](https://github.com/yourusername/postpilot/issues)
-- 🐦 Twitter: [@yourhandle]
+- 💬 GitHub Issues: [Report bugs and request features](https://github.com/shub3am/postpilot/issues)
+- 🐦 Twitter: [@Shubh3m]
 
 ## Acknowledgments
 
@@ -287,10 +286,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Icons from Lucide React
 - Notifications powered by Sonner
 - Styling with Tailwind CSS
-
-## Roadmap
-
-See our [GitHub Projects](https://github.com/yourusername/postpilot/projects) for the detailed roadmap and upcoming features.
 
 ---
 
