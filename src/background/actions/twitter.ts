@@ -28,6 +28,49 @@ export function testTwitterConnection() {
   );
 }
 
+export async function postToTwitter(post: {
+  title: string;
+  content: string;
+  tags: string[];
+  image: string | null;
+}) {
+  const data = await storage.getSettings();
+  if (
+    !data.connectionStatus.twitter ||
+    data.connectionStatus.twitter.status !== "connected"
+  ) {
+    console.error("Not connected to Twitter");
+    return;
+  }
+
+  chrome.tabs.create(
+    {
+      url: "https://x.com/compose/tweet",
+      active: true,
+    },
+    (tab) => {
+      if (!tab.id) {
+        return;
+      }
+      const tabId = tab.id;
+      const listener = (listenerId: number, info: { status?: string }) => {
+        if (listenerId === tabId && info.status === "complete") {
+          chrome.tabs.onUpdated.removeListener(listener);
+
+          setTimeout(() => {
+            chrome.tabs.sendMessage(tabId, {
+              type: "POST_TWITTER",
+              payload: post,
+            });
+          }, 1000);
+        }
+      };
+
+      chrome.tabs.onUpdated.addListener(listener);
+    },
+  );
+}
+
 export async function checkTwitterConnection(
   payload: {
     profile_name: string | undefined;

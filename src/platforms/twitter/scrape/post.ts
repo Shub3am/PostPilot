@@ -1,13 +1,106 @@
 // Browser Automation to post on Twitter
 // This script will be injected into the Twitter post creation page to automate the posting process.
 
-import { waitForElement } from "../../../utils/utils";
-
+import { typeLikeUser, waitForElement } from "../../../utils/utils";
+import { delay } from "../../../utils/utils";
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === "RUN_TWITTER_TEST") {
-    checkTwitterConnection();
+  switch (message.type) {
+    case "RUN_TWITTER_TEST":
+      checkTwitterConnection();
+      break;
+    case "POST_TWITTER":
+      postToTwitter(message.payload);
+      break;
+    default:
+      break;
   }
 });
+
+async function postToTwitter(post: {
+  title: string;
+  content: string;
+  tags: string[];
+  image: string | null;
+}) {
+  const { title, content, tags, image } = post;
+  await waitForElement('div[role="textbox"]');
+
+  const editor = document.querySelector(
+    'div[role="textbox"][contenteditable="true"]',
+  ) as HTMLElement | null;
+
+  if (!editor) return console.error("Editor not found");
+
+  editor.focus();
+  editor.click();
+  if (image) {
+    const res = await fetch(image);
+    const blob = await res.blob();
+
+    const file = new File([blob], "tweet-image.jpg", {
+      type: blob.type,
+    });
+
+    const dt = new DataTransfer();
+    dt.items.add(file);
+
+    const pasteEvent = new ClipboardEvent("paste", {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: dt,
+    });
+
+    editor.dispatchEvent(pasteEvent);
+
+    // wait for twitter upload to initialize
+    await new Promise((r) => setTimeout(r, 1200));
+  }
+  await delay(2000);
+  const mainEditor = document.querySelector(
+    'div[role="textbox"][contenteditable="true"]',
+  ) as HTMLElement | null;
+  mainEditor.focus();
+  mainEditor.click();
+  const finalText = `${title}
+
+  ${content}
+
+  ${tags.map((t) => `#${t}`).join(" ")}`;
+  const selection = window.getSelection();
+  if (!selection) return;
+
+  const range = document.createRange();
+  range.selectNodeContents(mainEditor as Node);
+  range.collapse(false);
+
+  selection.removeAllRanges();
+  selection.addRange(range);
+
+  document.execCommand("insertText", false, finalText);
+  // typeLikeUser(mainEditor as HTMLElement, finalText);
+
+  // editor.textContent = "";
+  // editor.dispatchEvent(
+  //   new InputEvent("beforeinput", {
+  //     bubbles: true,
+  //     cancelable: true,
+  //     inputType: "insertText",
+  //     data: finalText,
+  //   }),
+  // );
+
+  // editor.textContent = finalText;
+
+  // editor.dispatchEvent(
+  //   new InputEvent("input", {
+  //     bubbles: true,
+  //     inputType: "insertText",
+  //     data: finalText,
+  //   }),
+  // );
+
+  console.log("Inserted tweet content");
+}
 
 async function checkTwitterConnection() {
   try {
@@ -16,7 +109,6 @@ async function checkTwitterConnection() {
     if (profileBtn) {
       (profileBtn as HTMLElement).click();
       await waitForElement("[data-testid='UserName']");
-      await waitForElement('[data-testid="UserAvatar-Container-Shubh3m"] img');
     } else {
       throw new Error("Profile button not found");
     }
@@ -26,13 +118,14 @@ async function checkTwitterConnection() {
         .querySelector('[data-testid="UserName"]')
         ?.textContent?.split("@")
         .join("/") || null;
+    const profileImageSelectorClass = `[data-testid="UserAvatar-Container-${profile_name?.split("/")[1]}"] img`;
+    await waitForElement(profileImageSelectorClass);
 
     const profile_image =
-      document
-        .querySelector('[data-testid="UserAvatar-Container-Shubh3m"] img')
-        ?.getAttribute("src") || null;
+      document.querySelector(profileImageSelectorClass)?.getAttribute("src") ||
+      null;
     const lazy_click: HTMLElement | null = document.querySelector(
-      '[data-testid="UserAvatar-Container-Shubh3m"] img',
+      profileImageSelectorClass,
     );
     lazy_click?.click();
 

@@ -1,6 +1,6 @@
 // Background script for the PostPilot Chrome extension
 
-import { storage } from "../utils/storage";
+// import { storage } from "../utils/storage";
 import {
   checkLinkedinConnection,
   postedToLinkedin,
@@ -9,6 +9,7 @@ import {
 } from "./actions/linkedin";
 import {
   checkTwitterConnection,
+  postToTwitter,
   testTwitterConnection,
 } from "./actions/twitter";
 
@@ -34,6 +35,9 @@ chrome.runtime.onMessage.addListener((message, sender) => {
       break;
     case "POST_TO_LINKEDIN":
       postToLinkedin(message.payload);
+      break;
+    case "POST_TO_TWITTER":
+      postToTwitter(message.payload);
       break;
     // Used for checking connection status when user clicks on "Check Connection" button in the extension UI
     case "CHECK_TWITTER_CONNECTION":
