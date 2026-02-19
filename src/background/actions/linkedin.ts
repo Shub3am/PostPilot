@@ -37,7 +37,7 @@ export async function postToLinkedin(post: {
   chrome.tabs.create(
     {
       url: "https://www.linkedin.com/feed",
-      active: true,
+      active: false,
     },
     (tab) => {
       if (!tab.id) {

@@ -2,10 +2,10 @@
 // This script will be injected into the LinkedIn post creation page to automate the posting process.
 
 import type { historyItem } from "../../../utils/types";
+import { delay, waitForElement } from "../../../utils/utils";
 import { waitForEditor } from "./helper";
 
 chrome.runtime.onMessage.addListener((message) => {
-  console.log("Received message in content script:", message);
   if (message.type === "RUN_LINKEDIN_TEST") {
     checkLinkedinConnection();
   }
@@ -21,8 +21,7 @@ async function checkLinkedinConnection() {
   const profile_image = document.querySelector(
     ".profile-card-profile-picture",
   ) as HTMLImageElement | null;
-  console.log("LinkedIn profile name:", profile_name);
-  console.log("LinkedIn profile image:", profile_image?.src);
+
   chrome.runtime.sendMessage({
     type: "LINKEDIN_CONNECTION_CHECK_DONE",
     payload: {
@@ -47,13 +46,11 @@ async function postLinkedin(post: historyItem) {
 
   startBtn.click();
 
-  // 🚨 WAIT FOR EDITOR (THIS WAS MISSING)
   const editor = await waitForEditor();
 
   editor.focus();
   editor.click();
 
-  // ---------- paste image ----------
   if (image) {
     const res = await fetch(image);
     const blob = await res.blob();
@@ -73,11 +70,9 @@ async function postLinkedin(post: historyItem) {
 
     editor.dispatchEvent(pasteEvent);
 
-    // small upload delay helps
     await new Promise((r) => setTimeout(r, 1000));
   }
 
-  // ---------- build text ----------
   const hashtagString = tags
     .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`))
     .join(" ");
@@ -90,6 +85,9 @@ ${hashtagString}`;
 
   editor.focus();
   document.execCommand("insertText", false, finalText);
+  await delay(1000);
+  await waitForElement(".share-box_actions");
+
   const postActions = document.querySelector(".share-box_actions");
 
   if (!postActions) {
@@ -105,7 +103,6 @@ ${hashtagString}`;
   }
 
   (postBtn as HTMLButtonElement).click();
-
   chrome.runtime.sendMessage({
     type: "LINKEDIN_POST_DONE",
     payload: post,

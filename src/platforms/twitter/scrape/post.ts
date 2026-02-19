@@ -4,7 +4,6 @@
 import { waitForElement } from "../../../utils/utils";
 
 chrome.runtime.onMessage.addListener((message) => {
-  console.log("Received message in content script:", message);
   if (message.type === "RUN_TWITTER_TEST") {
     checkTwitterConnection();
   }
@@ -18,7 +17,6 @@ async function checkTwitterConnection() {
       (profileBtn as HTMLElement).click();
       await waitForElement("[data-testid='UserName']");
       await waitForElement('[data-testid="UserAvatar-Container-Shubh3m"] img');
-      console.log("Page Loaded");
     } else {
       throw new Error("Profile button not found");
     }
@@ -37,8 +35,7 @@ async function checkTwitterConnection() {
       '[data-testid="UserAvatar-Container-Shubh3m"] img',
     );
     lazy_click?.click();
-    console.log("Twitter profile name:", profile_name);
-    console.log("Twitter profile image:", profile_image);
+
     chrome.runtime.sendMessage({
       type: "TWITTER_CONNECTION_CHECK_DONE",
       payload: {

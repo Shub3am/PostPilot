@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { storage } from "../utils/storage";
 import { Upload, X, Send } from "lucide-react";
 export default function DraftContent() {
   const [image, setImage] = useState<string | null>(null);
@@ -39,7 +40,6 @@ export default function DraftContent() {
     showToast("Post created successfully! Ready to publish.", "success");
 
     const post = {
-      id: Date.now().toString(),
       title,
       content,
       tags: tags
@@ -47,11 +47,13 @@ export default function DraftContent() {
         .map((t) => t.trim())
         .filter(Boolean),
       image,
-      timestamp: new Date().toISOString(),
     };
+    chrome.runtime.sendMessage({
+      type: "POST_TO_LINKEDIN",
+      payload: post,
+    });
 
-    const history = JSON.parse(localStorage.getItem("postHistory") || "[]");
-    localStorage.setItem("postHistory", JSON.stringify([post, ...history]));
+    // storage.addPostHistory(post);
   };
 
   return (
@@ -174,21 +176,6 @@ export default function DraftContent() {
           <div className="flex justify-end pt-4">
             <button
               type="submit"
-              onClick={() => {
-                console.log("ran");
-                chrome.runtime.sendMessage({
-                  type: "POST_TO_LINKEDIN",
-                  payload: {
-                    title,
-                    content,
-                    tags: tags
-                      .split(",")
-                      .map((t) => t.trim())
-                      .filter(Boolean),
-                    image,
-                  },
-                });
-              }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm">
               <Send className="w-4 h-4" />
               Create Post

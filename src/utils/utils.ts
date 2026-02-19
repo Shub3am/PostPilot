@@ -18,3 +18,5 @@ export function waitForElement(selector: string, timeout = 10000) {
     }, interval);
   });
 }
+
+export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));

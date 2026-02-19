@@ -37,7 +37,6 @@ export async function checkTwitterConnection(
   tabId: number | undefined,
 ) {
   const data = await storage.getSettings();
-  console.log(payload);
   data.connectionStatus.twitter = {
     profile_name: payload.profile_name || null,
     profile_image: payload.profile_image || null,

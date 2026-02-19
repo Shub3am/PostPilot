@@ -29,7 +29,6 @@ class Storage {
     if (!data[STORAGE_KEY]) {
       throw new Error("PostPilot storage not found");
     }
-    console.log(data[STORAGE_KEY]);
     return data[STORAGE_KEY] as PostPilotStorage;
   }
 
