@@ -48,10 +48,10 @@ export default function DraftContent() {
         .filter(Boolean),
       image,
     };
-    // chrome.runtime.sendMessage({
-    //   type: "POST_TO_LINKEDIN",
-    //   payload: post,
-    // });
+    chrome.runtime.sendMessage({
+      type: "POST_TO_LINKEDIN",
+      payload: post,
+    });
     chrome.runtime.sendMessage({
       type: "POST_TO_TWITTER",
       payload: post,

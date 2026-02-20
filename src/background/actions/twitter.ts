@@ -71,6 +71,26 @@ export async function postToTwitter(post: {
   );
 }
 
+export async function postedToTwitter(
+  payload: {
+    title: string;
+    content: string;
+    tags: string[];
+    image: string | null;
+  },
+  tabId: number | undefined,
+) {
+  storage.addPostHistory({
+    ...payload,
+    postedOn: "Twitter",
+  });
+  if (tabId) {
+    setTimeout(() => {
+      chrome.tabs.remove(tabId);
+    }, 2500);
+  }
+}
+
 export async function checkTwitterConnection(
   payload: {
     profile_name: string | undefined;

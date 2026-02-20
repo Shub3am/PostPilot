@@ -29,7 +29,7 @@ const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
 ];
 
 export function Layout() {
-  const [currentPage, setCurrentPage] = useState<Page>("settings");
+  const [currentPage, setCurrentPage] = useState<Page>("draft");
 
   const renderPage = () => {
     switch (currentPage) {

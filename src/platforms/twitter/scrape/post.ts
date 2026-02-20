@@ -1,7 +1,7 @@
 // Browser Automation to post on Twitter
 // This script will be injected into the Twitter post creation page to automate the posting process.
 
-import { typeLikeUser, waitForElement } from "../../../utils/utils";
+import { waitForElement } from "../../../utils/utils";
 import { delay } from "../../../utils/utils";
 chrome.runtime.onMessage.addListener((message) => {
   switch (message.type) {
@@ -23,83 +23,80 @@ async function postToTwitter(post: {
   image: string | null;
 }) {
   const { title, content, tags, image } = post;
-  await waitForElement('div[role="textbox"]');
 
+  await waitForElement('div[role="textbox"][contenteditable="true"]');
   const editor = document.querySelector(
     'div[role="textbox"][contenteditable="true"]',
   ) as HTMLElement | null;
 
   if (!editor) return console.error("Editor not found");
 
+  let finalText =
+    (title ? title + "\n\n" : "") +
+    (content ? content + "\n\n" : "") +
+    (tags.length ? tags.map((t) => "#" + t).join(" ") : "");
+
+  finalText = finalText.trim();
+
+  // Focus and clear
   editor.focus();
   editor.click();
+
+  // Use execCommand to insert text — this fires the right React synthetic events
+  document.execCommand("selectAll", false, undefined);
+  document.execCommand("delete", false, undefined);
+
+  // Insert text via clipboard (most reliable method for React-controlled editors)
+  const clipboardData = new DataTransfer();
+  clipboardData.setData("text/plain", finalText);
+
+  const pasteEvent = new ClipboardEvent("paste", {
+    bubbles: true,
+    cancelable: true,
+    clipboardData,
+  });
+
+  editor.dispatchEvent(pasteEvent);
+  await delay(300);
+
+  // If paste didn't work, fall back to execCommand insertText
+  if (!editor.textContent?.includes(finalText.slice(0, 20))) {
+    document.execCommand("selectAll", false, undefined);
+    document.execCommand("delete", false, undefined);
+    document.execCommand("insertText", false, finalText);
+  }
+
   if (image) {
     const res = await fetch(image);
     const blob = await res.blob();
-
-    const file = new File([blob], "tweet-image.jpg", {
-      type: blob.type,
-    });
+    const file = new File([blob], "tweet-image.jpg", { type: blob.type });
 
     const dt = new DataTransfer();
     dt.items.add(file);
 
-    const pasteEvent = new ClipboardEvent("paste", {
-      bubbles: true,
-      cancelable: true,
-      clipboardData: dt,
-    });
-
-    editor.dispatchEvent(pasteEvent);
-
-    // wait for twitter upload to initialize
-    await new Promise((r) => setTimeout(r, 1200));
+    editor.focus();
+    editor.dispatchEvent(
+      new ClipboardEvent("paste", {
+        bubbles: true,
+        cancelable: true,
+        clipboardData: dt,
+      }),
+    );
+    await delay(1500);
   }
+  const postButton = document.querySelector(
+    'button[data-testid="tweetButton"]',
+  ) as HTMLButtonElement | null;
+  if (!postButton) {
+    console.error("Post button not found");
+    return;
+  }
+  postButton.click();
   await delay(2000);
-  const mainEditor = document.querySelector(
-    'div[role="textbox"][contenteditable="true"]',
-  ) as HTMLElement | null;
-  mainEditor.focus();
-  mainEditor.click();
-  const finalText = `${title}
-
-  ${content}
-
-  ${tags.map((t) => `#${t}`).join(" ")}`;
-  const selection = window.getSelection();
-  if (!selection) return;
-
-  const range = document.createRange();
-  range.selectNodeContents(mainEditor as Node);
-  range.collapse(false);
-
-  selection.removeAllRanges();
-  selection.addRange(range);
-
-  document.execCommand("insertText", false, finalText);
-  // typeLikeUser(mainEditor as HTMLElement, finalText);
-
-  // editor.textContent = "";
-  // editor.dispatchEvent(
-  //   new InputEvent("beforeinput", {
-  //     bubbles: true,
-  //     cancelable: true,
-  //     inputType: "insertText",
-  //     data: finalText,
-  //   }),
-  // );
-
-  // editor.textContent = finalText;
-
-  // editor.dispatchEvent(
-  //   new InputEvent("input", {
-  //     bubbles: true,
-  //     inputType: "insertText",
-  //     data: finalText,
-  //   }),
-  // );
-
-  console.log("Inserted tweet content");
+  chrome.runtime.sendMessage({
+    type: "TWITTER_POST_DONE",
+    payload: post,
+  });
 }
 
 async function checkTwitterConnection() {

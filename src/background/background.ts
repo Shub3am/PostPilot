@@ -9,6 +9,7 @@ import {
 } from "./actions/linkedin";
 import {
   checkTwitterConnection,
+  postedToTwitter,
   postToTwitter,
   testTwitterConnection,
 } from "./actions/twitter";
@@ -32,6 +33,9 @@ chrome.runtime.onMessage.addListener((message, sender) => {
       break;
     case "LINKEDIN_POST_DONE":
       postedToLinkedin(message.payload, sender?.tab?.id);
+      break;
+    case "TWITTER_POST_DONE":
+      postedToTwitter(message.payload, sender?.tab?.id);
       break;
     case "POST_TO_LINKEDIN":
       postToLinkedin(message.payload);

@@ -3,7 +3,6 @@
 
 import type { historyItem } from "../../../utils/types";
 import { delay, waitForElement } from "../../../utils/utils";
-import { waitForEditor } from "./helper";
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "RUN_LINKEDIN_TEST") {
@@ -46,10 +45,30 @@ async function postLinkedin(post: historyItem) {
 
   startBtn.click();
 
-  const editor = await waitForEditor();
+  await waitForElement(".ql-editor");
+  await delay(300);
+  const editor = document.querySelector(".ql-editor") as HTMLElement | null;
+
+  if (!editor) return console.error("Editor not found");
+  const hashtagString = tags
+    .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`))
+    .join(" ");
 
   editor.focus();
   editor.click();
+  editor.innerHTML = `<p>${title}</p><p>${content}</p><p>${hashtagString}</p>`;
+
+  editor.dispatchEvent(new Event("input", { bubbles: true }));
+
+  // document.execCommand("selectAll", false, undefined);
+  // document.execCommand("delete", false, undefined);
+  // document.execCommand(
+  //   "insertText",
+  //   false,
+  //   `${title}\n${content}\n${hashtagString}`,
+  // );
+
+  await delay(500);
 
   if (image) {
     const res = await fetch(image);
@@ -73,19 +92,6 @@ async function postLinkedin(post: historyItem) {
     await new Promise((r) => setTimeout(r, 1000));
   }
 
-  const hashtagString = tags
-    .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`))
-    .join(" ");
-
-  const finalText = `${title}
-
-${content}
-
-${hashtagString}`;
-
-  editor.focus();
-  document.execCommand("insertText", false, finalText);
-  await delay(1000);
   await waitForElement(".share-box_actions");
 
   const postActions = document.querySelector(".share-box_actions");
