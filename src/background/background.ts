@@ -25,6 +25,11 @@ chrome.action.onClicked.addListener(() => {
   });
 });
 
+const postFunctions: { [key: string]: Function } = {
+  twitter: postToTwitter,
+  linkedin: postToLinkedin,
+};
+
 /* 
 This listener handles various message types related to checking connections, posting content, and more.
 
@@ -48,8 +53,15 @@ chrome.runtime.onMessage.addListener(
         break;
 
       case "CREATE_POST":
-        postToLinkedin(message.payload);
-        postToTwitter(message.payload);
+        message.payload.platforms.forEach((platform: string) => {
+          const postFunction = postFunctions[platform.toLowerCase()];
+          if (postFunction) {
+            postFunction(message.payload);
+          }
+        });
+        // For testing, we can also call both directly:
+        // postToLinkedin(message.payload);
+        // postToTwitter(message.payload);
         break;
 
       case "CHECK_TWITTER_CONNECTION":

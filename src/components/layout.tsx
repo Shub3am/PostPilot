@@ -34,7 +34,7 @@ export function Layout() {
   const renderPage = () => {
     switch (currentPage) {
       case "draft":
-        return <DraftContent />;
+        return <DraftContent setCurrentPage={setCurrentPage} />;
       case "settings":
         return <Settings />;
       case "history":

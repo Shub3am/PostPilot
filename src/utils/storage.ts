@@ -76,6 +76,15 @@ class Storage {
     data.history = [];
     await chrome.storage.local.set({ [STORAGE_KEY]: data });
   }
+
+  async getConnectedAccounts(): Promise<string[]> {
+    const data = await this.getStorage();
+
+    const connectedPlatforms = Object.entries(data.settings.connectionStatus)
+      .filter(([, value]) => value.status === "connected")
+      .map(([key]) => key);
+    return connectedPlatforms;
+  }
 }
 
 export const storage = new Storage();

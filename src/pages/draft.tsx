@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { storage } from "../utils/storage";
 import { Upload, X, Send } from "lucide-react";
-export default function DraftContent() {
+export default function DraftContent({
+  setCurrentPage,
+}: {
+  setCurrentPage: React.Dispatch<React.SetStateAction<string>>;
+}) {
   const [image, setImage] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -10,11 +14,17 @@ export default function DraftContent() {
     message: string;
     type: "success" | "error";
   } | null>(null);
-
+  const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
+
+  useEffect(() => {
+    storage.getConnectedAccounts().then((accounts) => {
+      setConnectedAccounts(accounts);
+    });
+  }, [connectedAccounts.length]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -50,7 +60,7 @@ export default function DraftContent() {
     };
     chrome.runtime.sendMessage({
       type: "CREATE_POST",
-      payload: post,
+      payload: { ...post, platforms: connectedAccounts },
     });
   };
 
@@ -169,7 +179,35 @@ export default function DraftContent() {
               Separate tags with commas
             </p>
           </div>
-
+          {/* Platform Selection */}
+          {connectedAccounts.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Platforms to Post
+              </label>
+              <div className="flex flex-wrap gap-4">
+                {connectedAccounts.map((account) => (
+                  <label
+                    key={account}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      defaultChecked
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700 capitalize">
+                      {account}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <button
+                className="mt-2 text-blue-600 hover:underline"
+                onClick={() => setCurrentPage("settings")}>
+                Connect More Here
+              </button>
+            </div>
+          )}
           {/* Submit */}
           <div className="flex justify-end pt-4">
             <button
