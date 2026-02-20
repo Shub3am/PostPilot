@@ -49,15 +49,9 @@ export default function DraftContent() {
       image,
     };
     chrome.runtime.sendMessage({
-      type: "POST_TO_LINKEDIN",
+      type: "CREATE_POST",
       payload: post,
     });
-    chrome.runtime.sendMessage({
-      type: "POST_TO_TWITTER",
-      payload: post,
-    });
-
-    // storage.addPostHistory(post);
   };
 
   return (

@@ -71,6 +71,11 @@ class Storage {
     data.history.unshift(post);
     await chrome.storage.local.set({ [STORAGE_KEY]: data });
   }
+  async clearHistory(): Promise<void> {
+    const data = await this.getStorage();
+    data.history = [];
+    await chrome.storage.local.set({ [STORAGE_KEY]: data });
+  }
 }
 
 export const storage = new Storage();
