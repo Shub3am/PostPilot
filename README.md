@@ -18,17 +18,20 @@ PostPilot is a browser extension designed to streamline your social media workfl
 - Post drafting with title, content, tags, and images
 - Post history tracking with timestamps
 - Platform connection status management
-- Settings panel for API tokens and method selection
-- Both API and scrape-based posting methods
+- Settings panel for API tokens and configuration
+- Dev.to API integration with Cloudinary image uploads
+- Chrome notifications for error reporting
+- Comprehensive error handling with user-friendly alerts
+- Well-documented codebase with JSDoc comments
 
 ### Supported Platforms
-- **LinkedIn** - Post to your LinkedIn feed (API or scrape method)
-- **Twitter/X** - Tweet directly to your Twitter account (API or scrape method)  
-- **Dev.to** - Publish articles to Dev.to (API or scrape method)
+- **LinkedIn** - Post to your LinkedIn feed (scrape method)
+- **Twitter/X** - Tweet directly to your Twitter account (scrape method)  
+- **Dev.to** - Publish articles to Dev.to with image support (API method via Cloudinary)
 
 ## Project Status
 
-### Current State: Beta (v0.0.1)
+### Current State: Beta (v0.1.0)
 
 **Implemented:**
 - ✅ Core extension infrastructure with Manifest V3
@@ -39,20 +42,27 @@ PostPilot is a browser extension designed to streamline your social media workfl
 - ✅ Storage system for posts and settings
 - ✅ Content scripts for LinkedIn and Twitter scraping
 - ✅ Background service worker for message handling
+- ✅ Dev.to API integration with full article publishing
+- ✅ Cloudinary integration for image uploads to Dev.to
+- ✅ Error notifications via Chrome notifications API
+- ✅ Comprehensive error handling and user feedback
+- ✅ JSDoc documentation for all functions
+- ✅ Platform connection testing and verification
+- ✅ Disconnect functionality for all platforms
 
 **In Progress:**
-- 🔄 Image upload functionality for LinkedIn
-- 🔄 API-based posting methods
-- 🔄 Platform integration testing
+- 🔄 Image upload functionality for LinkedIn (paste-based)
+- 🔄 Twitter posting improvements
+- 🔄 Enhanced testing across platforms
 
 **Planned Features:**
 - 📋 Schedule posts for later
-- 🔔 Notifications for successful/failed posts
 - 🎨 Rich text editor with preview
 - 📊 Analytics and engagement tracking
 - 🔐 Enhanced security for credentials
 - 🌙 Dark mode support
 - 🌍 Multi-language support
+- 🔄 Post editing and drafts management
 
 ## Installation
 
@@ -126,10 +136,20 @@ This will start the Vite development server. After making changes:
 
 1. Go to the **Settings** tab
 2. For each platform:
-   - Enter your API token (if using API method) or keep blank for scraping
-   - Select your preferred posting method (API or Scrape)
-3. Click "Connect" to verify your connection
-4. Once connected, you'll see your profile info
+
+   **LinkedIn & Twitter/X:**
+   - Click "Check Connection" to verify you're logged in
+   - These platforms use scraping (no API token needed)
+   
+   **Dev.to:**
+   - Enter your Dev.to API token (get it from [Dev.to Settings](https://dev.to/settings/extensions))
+   - Configure Cloudinary settings for image uploads:
+     - Cloud Name (from your Cloudinary dashboard)
+     - Unsigned Upload Preset (create one in Cloudinary settings)
+   - Click "Check Connection" to verify
+   
+3. Once connected, you'll see your profile info and a green "connected" status
+4. You can disconnect anytime by clicking the "Disconnect" button
 
 ### Viewing Post History
 
@@ -180,13 +200,15 @@ We welcome contributions from the community! Here's how you can help:
 
 ### Areas for Contribution
 
-- **Platform Support**: Add new social media platforms
-- **Features**: Implement scheduling, analytics, or rich text editing
+- **Platform Support**: Add new social media platforms (Medium, Hashnode, etc.)
+- **Features**: Implement post scheduling, analytics, or rich text editing
 - **Bug Fixes**: Help squash bugs and improve stability
-- **Documentation**: Improve README, add comments, create guides
-- **Testing**: Write tests and test on different browsers/platforms
+- **Documentation**: Improve README, add comments, create user guides
+- **Testing**: Write automated tests for better code coverage
 - **UI/UX**: Improve the design and user experience
 - **Localization**: Add support for different languages
+- **Security**: Improve credential handling and data encryption
+- **Performance**: Optimize bundle size and runtime performance
 
 ### Code Structure
 
@@ -250,10 +272,11 @@ extension/
 
 ## Known Issues & Limitations
 
-- Image uploads currently work via paste events on LinkedIn
-- Twitter scraping method requires manual interaction
-- Dev.to currently requires API token for posting
-- Extension works only on LinkedIn, Twitter/X, and Dev.to
+- LinkedIn and Twitter use scraping methods (may break with platform updates)
+- Dev.to requires API token and Cloudinary configuration for images
+- Image uploads to Dev.to require Cloudinary account (free tier available)
+- Posts to LinkedIn need to be relatively short
+- Extension currently supports Chrome/Chromium browsers only
 
 ## Troubleshooting
 
@@ -261,15 +284,25 @@ extension/
 - Make sure you're in Developer mode (`chrome://extensions/`)
 - Try rebuilding: `pnpm build`
 - Clear browser cache and reload the extension
+- Check the console for any error messages
 
 ### Posts not appearing?
-- Verify you're connected to the platform (check Settings)
-- Ensure appropriate permissions are granted
-- Check the browser console for error messages
+- Verify you're connected to the platform (check Settings tab)
+- Ensure you're logged into the platform in the same browser
+- For Dev.to, verify your API token is correct
+- Check Chrome notifications for any error messages
 
-### Can't upload images?
-- Some browsers have restrictions on clipboard access
-- Try refreshing the platform page before posting
+### Can't upload images to Dev.to?
+- Verify your Cloudinary settings are configured correctly
+- Ensure your Cloudinary upload preset is set to "unsigned"
+- Check that your image is a valid format (JPEG, PNG, GIF)
+- Verify Cloudinary account has upload quota remaining
+
+### Connection check failing?
+- Make sure you're logged into the platform in your browser
+- For Dev.to, verify your API token is valid
+- Try disconnecting and reconnecting
+- Check if the platform's website layout has changed (may affect scraping)
 
 ## License
 
