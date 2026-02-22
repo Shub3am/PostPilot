@@ -111,7 +111,7 @@ export async function checkTwitterConnection(
   }
 }
 
-export async function DisconnectTwitter() {
+export async function disconnectTwitter() {
   const data = await storage.getSettings();
   data.connectionStatus.twitter = {
     profile_name: null,

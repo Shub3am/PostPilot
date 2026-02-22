@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { default_storage, type Settings } from "../utils/types";
 import { storage } from "../utils/storage";
-import { DisconnectTwitter } from "../background/actions/twitter";
+import { disconnectTwitter } from "../background/actions/twitter";
+import { disconnectLinkedin } from "../background/actions/linkedin";
+import { disconnectDevto } from "../background/actions/devto";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(default_storage.settings);
@@ -19,14 +21,12 @@ export default function SettingsPage() {
       }
     };
     loadSettings();
-
+    /*
+    THIS CAPTURES BACKGROUND SERVICE WORKER SEND MESSAGE TO RELOAD PAGE AFTER CHECKING CONNECTION FOR ANY PLATFORM
+    HOOKS CALLED FROM BACKGROUND ARE FOR EXAMPLE: LINKEDIN_CONNECTION_CHECK_DONE, TWITTER_CONNECTION_CHECK_DONE, DEVTO_CONNECTION_CHECK_DONE
+    */
     chrome.runtime.onMessage.addListener((message) => {
-      if (
-        message.type === "TWITTER_CONNECTION_CHECK_DONE" ||
-        message.type === "LINKEDIN_CONNECTION_CHECK_DONE" ||
-        message.type === "CHECK_DEVTO_CONNECTION"
-      ) {
-        // Refresh settings after connection check is done
+      if (message.type.includes("CHECK_DONE")) {
         window.location.reload();
       }
     });
@@ -158,6 +158,14 @@ export default function SettingsPage() {
                       ? "Recheck Connection"
                       : "Check Connection"}
                   </button>
+                  {settings.connectionStatus.linkedin.status ===
+                    "connected" && (
+                    <button
+                      onClick={disconnectLinkedin}
+                      className="bg-red-600 p-2 rounded-lg m-2 text-white hover:bg-red-700">
+                      Disconnect
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -237,7 +245,7 @@ export default function SettingsPage() {
                   </button>
                   {settings.connectionStatus.twitter.status === "connected" && (
                     <button
-                      onClick={DisconnectTwitter}
+                      onClick={disconnectTwitter}
                       className="bg-red-600 p-2 rounded-lg m-2 text-white hover:bg-red-700">
                       Disconnect
                     </button>
@@ -268,21 +276,25 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold mb-4">Dev.to</h3>
           <div className="space-y-4">
             <div>
-              {settings.methods.devto === "api" && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Token
-                  </label>
-                  <input
-                    type="password"
-                    value={settings.tokens.devto}
-                    onChange={(e) => handleTokenChange("devto", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    placeholder="Enter Dev.to token"
-                  />
-                </div>
-              )}
-              {settings.methods.devto === "scrape" && (
+              <div>
+                <label className="block text-sm font-medium mb-1">Token</label>
+                <input
+                  disabled={
+                    settings.connectionStatus.devto.status === "connected"
+                  }
+                  type="password"
+                  value={settings.tokens.devto}
+                  onChange={(e) => handleTokenChange("devto", e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md disabled:bg-gray-100"
+                  placeholder={
+                    settings.connectionStatus.devto.status === "connected"
+                      ? "Dev.to token is connected"
+                      : "Enter Dev.to token"
+                  }
+                />
+              </div>
+
+              {settings.methods.devto && (
                 <div>
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-md">
                     {settings.connectionStatus.devto.profile_image && (
@@ -306,6 +318,7 @@ export default function SettingsPage() {
                   <button
                     className={`p-2 rounded-lg m-2 ${settings.connectionStatus.devto.status === "connected" ? "bg-green-300" : "bg-amber-300"}`}
                     onClick={() => {
+                      handleSave(); // Save the token before checking connection
                       chrome.runtime.sendMessage({
                         type: "CHECK_DEVTO_CONNECTION",
                       });
@@ -314,23 +327,69 @@ export default function SettingsPage() {
                       ? "Recheck Connection"
                       : "Check Connection"}
                   </button>
+                  {settings.connectionStatus.devto.status === "connected" && (
+                    <button
+                      onClick={disconnectDevto}
+                      className="bg-red-600 p-2 rounded-lg m-2 text-white hover:bg-red-700">
+                      Disconnect
+                    </button>
+                  )}
+                  {
+                    <div className="mt-4 p-3  rounded-md">
+                      <p
+                        className={`text-sm ${settings.cloudinary.cloud_name && settings.cloudinary.unsigned_preset ? "text-green-700" : "text-red-700"}`}>
+                        Cloudinary settings.
+                        {settings.cloudinary.unsigned_preset &&
+                        settings.cloudinary.cloud_name
+                          ? "This is used to upload images to Dev.to"
+                          : " Please set up Cloudinary to upload images to Dev.to"}
+                      </p>
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const formData = new FormData(
+                            e.target as HTMLFormElement,
+                          );
+                          formData.forEach((value, key) => {
+                            console.log(key, value);
+                          });
+                          storage.setCloudinarySettings(
+                            formData.get("cloud_name") as string,
+                            formData.get("unsigned_preset") as string,
+                          );
+                          window.location.reload();
+                        }}>
+                        <input
+                          type="text"
+                          name="cloud_name"
+                          placeholder="Cloud Name"
+                          defaultValue={settings.cloudinary.cloud_name}
+                          className="w-full p-2 border border-gray-300 rounded-md mt-2"
+                        />
+                        <input
+                          type="text"
+                          defaultValue={settings.cloudinary.unsigned_preset}
+                          name="unsigned_preset"
+                          placeholder="Unsigned Upload Preset"
+                          className="w-full p-2 border border-gray-300 rounded-md mt-2"
+                        />
+                        <button
+                          type="submit"
+                          className="bg-blue-600 text-white px-4 py-2 rounded-md mt-2 hover:bg-blue-700">
+                          {settings.cloudinary.cloud_name &&
+                          settings.cloudinary.unsigned_preset
+                            ? "Modify Cloudinary Settings"
+                            : "Set Cloudinary Settings"}
+                        </button>
+                      </form>
+                    </div>
+                  }
                 </div>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Method</label>
-              <select
-                value={settings.methods.devto}
-                onChange={(e) =>
-                  handleMethodChange(
-                    "devto",
-                    e.target.value as "scrape" | "api",
-                  )
-                }
-                className="w-full p-2 border border-gray-300 rounded-md">
-                <option value="scrape">Scrape</option>
-                <option value="api">API</option>
-              </select>
+              <label htmlFor="devto-method">API</label>
             </div>
           </div>
         </div>

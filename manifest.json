@@ -17,7 +17,7 @@
     "service_worker": "src/background/background.ts"
   },
   "permissions": ["storage", "activeTab", "scripting"],
-  "host_permissions": ["*://*.linkedin.com/*", "*://*.x.com/*"],
+  "host_permissions": ["*://*.linkedin.com/*", "*://*.x.com/*", "*://*.dev.to/*"],
   "content_scripts": [
     {
       "matches": ["*://*.linkedin.com/*"],
@@ -27,5 +27,6 @@
       "matches": ["*://*.x.com/*"],
       "js": ["src/platforms/twitter/scrape/post.ts"]
     }
+
   ]
 }

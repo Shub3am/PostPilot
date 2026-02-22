@@ -3,6 +3,7 @@
  * Handles message routing between content scripts and social media posting actions.
  */
 
+import { testDevtoConnection, postToDevto } from "./actions/devto";
 import {
   checkLinkedinConnection,
   postedToLinkedin,
@@ -28,6 +29,7 @@ chrome.action.onClicked.addListener(() => {
 const postFunctions: { [key: string]: Function } = {
   twitter: postToTwitter,
   linkedin: postToLinkedin,
+  devto: postToDevto,
 };
 
 /* 
@@ -45,6 +47,7 @@ chrome.runtime.onMessage.addListener(
       case "LINKEDIN_CONNECTION_CHECK_DONE":
         checkLinkedinConnection(message.payload, sender?.tab?.id);
         break;
+
       case "LINKEDIN_POST_DONE":
         postedToLinkedin(message.payload, sender?.tab?.id);
         break;
@@ -53,10 +56,10 @@ chrome.runtime.onMessage.addListener(
         break;
 
       case "CREATE_POST":
-        message.payload.platforms.forEach((platform: string) => {
+        message.payload.platforms.forEach(async (platform: string) => {
           const postFunction = postFunctions[platform.toLowerCase()];
           if (postFunction) {
-            postFunction(message.payload);
+            await postFunction(message.payload);
           }
         });
         // For testing, we can also call both directly:
@@ -69,6 +72,9 @@ chrome.runtime.onMessage.addListener(
         break;
       case "CHECK_LINKEDIN_CONNECTION":
         testLinkedinConnection();
+        break;
+      case "CHECK_DEVTO_CONNECTION":
+        testDevtoConnection();
         break;
       default:
         console.warn("Unknown message type:", message.type);

@@ -101,3 +101,14 @@ export async function postedToLinkedin(
     }, 2500);
   }
 }
+
+export async function disconnectLinkedin() {
+  const data = await storage.getSettings();
+  data.connectionStatus.linkedin = {
+    profile_name: null,
+    profile_image: null,
+    status: "not_connected",
+  };
+  await storage.setSettings(data);
+  window.location.reload();
+}

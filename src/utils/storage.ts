@@ -80,10 +80,27 @@ class Storage {
   async getConnectedAccounts(): Promise<string[]> {
     const data = await this.getStorage();
 
-    const connectedPlatforms = Object.entries(data.settings.connectionStatus)
+    let connectedPlatforms = Object.entries(data.settings.connectionStatus)
       .filter(([, value]) => value.status === "connected")
       .map(([key]) => key);
+    if (
+      !data.settings.cloudinary.cloud_name &&
+      !data.settings.cloudinary.unsigned_preset
+    ) {
+      connectedPlatforms = connectedPlatforms.filter(
+        (platform) => platform !== "devto",
+      );
+    }
     return connectedPlatforms;
+  }
+  async setCloudinarySettings(
+    cloud_name: string,
+    unsigned_preset: string,
+  ): Promise<void> {
+    const data = await this.getStorage();
+    data.settings.cloudinary.cloud_name = cloud_name;
+    data.settings.cloudinary.unsigned_preset = unsigned_preset;
+    await chrome.storage.local.set({ [STORAGE_KEY]: data });
   }
 }
 

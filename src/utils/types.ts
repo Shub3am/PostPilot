@@ -4,10 +4,14 @@ type Settings = {
     twitter: string;
     devto: string;
   };
+  cloudinary: {
+    unsigned_preset: string;
+    cloud_name: string;
+  };
   methods: {
     linkedin: "scrape" | "api";
     twitter: "scrape" | "api";
-    devto: "scrape" | "api";
+    devto: "api";
   };
 
   connectionStatus: {
@@ -44,6 +48,10 @@ type PostPilotStorage = {
 
 export const default_storage: PostPilotStorage = {
   settings: {
+    cloudinary: {
+      unsigned_preset: "",
+      cloud_name: "",
+    },
     tokens: {
       linkedin: "",
       twitter: "",
@@ -52,7 +60,7 @@ export const default_storage: PostPilotStorage = {
     methods: {
       linkedin: "scrape",
       twitter: "scrape",
-      devto: "scrape",
+      devto: "api",
     },
     connectionStatus: {
       linkedin: {

@@ -15,6 +15,7 @@ export default function DraftContent({
     type: "success" | "error";
   } | null>(null);
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
+  const [platformsSelected, setPlatformsSelected] = useState<string[]>([]);
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -23,8 +24,9 @@ export default function DraftContent({
   useEffect(() => {
     storage.getConnectedAccounts().then((accounts) => {
       setConnectedAccounts(accounts);
+      setPlatformsSelected(accounts); // Default to all connected platforms selected when the component mounts
     });
-  }, [connectedAccounts.length]);
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,6 +48,10 @@ export default function DraftContent({
       showToast("Title and content are required", "error");
       return;
     }
+    if (platformsSelected.length === 0) {
+      showToast("Please select at least one platform to post", "error");
+      return;
+    }
 
     showToast("Post created successfully! Ready to publish.", "success");
 
@@ -60,7 +66,7 @@ export default function DraftContent({
     };
     chrome.runtime.sendMessage({
       type: "CREATE_POST",
-      payload: { ...post, platforms: connectedAccounts },
+      payload: { ...post, platforms: platformsSelected },
     });
   };
 
@@ -193,6 +199,15 @@ export default function DraftContent({
                     <input
                       type="checkbox"
                       defaultChecked
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setPlatformsSelected((prev) => [...prev, account]);
+                        } else {
+                          setPlatformsSelected((prev) =>
+                            prev.filter((a) => a !== account),
+                          );
+                        }
+                      }}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                     />
                     <span className="text-sm font-medium text-gray-700 capitalize">

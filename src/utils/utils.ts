@@ -1,3 +1,5 @@
+import { storage } from "./storage";
+
 export function waitForElement(selector: string, timeout = 10000) {
   return new Promise<Element>((resolve, reject) => {
     const interval = 200;
@@ -52,4 +54,30 @@ export async function typeLikeUser(editor: HTMLElement, text: string) {
 
     await new Promise((r) => setTimeout(r, 4));
   }
+}
+
+export async function UploadBase64ToCloudinary(base64: string) {
+  const storageData = await storage.getStorage();
+  const cloudName = storageData.settings.cloudinary.cloud_name;
+  const uploadPreset = storageData.settings.cloudinary.unsigned_preset;
+
+  const formData = new FormData();
+  formData.append("file", base64);
+  formData.append("upload_preset", uploadPreset);
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Cloudinary upload failed: ${error}`);
+  }
+
+  const data = await response.json();
+  return data.secure_url; // <-- THIS is what you use as main_image
 }
