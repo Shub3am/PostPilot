@@ -5,26 +5,33 @@ import { disconnectTwitter } from "../background/actions/twitter";
 import { disconnectLinkedin } from "../background/actions/linkedin";
 import { disconnectDevto } from "../background/actions/devto";
 
+/**
+ * Settings page component for managing platform connections and tokens
+ * Handles configuration for LinkedIn, Twitter/X, and Dev.to integrations
+ */
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(default_storage.settings);
   const [notification, setNotification] = useState<{
     message: string;
     isError: boolean;
   } | null>(null);
+  
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const savedSettings = await storage.getSettings();
         setSettings(savedSettings);
       } catch (error) {
-        console.error("Failed to load settings:", error);
+        // Failed to load settings - user will see default settings
       }
     };
     loadSettings();
-    /*
-    THIS CAPTURES BACKGROUND SERVICE WORKER SEND MESSAGE TO RELOAD PAGE AFTER CHECKING CONNECTION FOR ANY PLATFORM
-    HOOKS CALLED FROM BACKGROUND ARE FOR EXAMPLE: LINKEDIN_CONNECTION_CHECK_DONE, TWITTER_CONNECTION_CHECK_DONE, DEVTO_CONNECTION_CHECK_DONE
-    */
+    
+    /**
+     * Listen for connection check completion messages from the background service worker
+     * When a platform connection check is done (e.g., LINKEDIN_CONNECTION_CHECK_DONE),
+     * reload the page to reflect the updated connection status
+     */
     chrome.runtime.onMessage.addListener((message) => {
       if (message.type.includes("CHECK_DONE")) {
         window.location.reload();
@@ -345,19 +352,20 @@ export default function SettingsPage() {
                           : " Please set up Cloudinary to upload images to Dev.to"}
                       </p>
                       <form
-                        onSubmit={(e) => {
+                        onSubmit={async (e) => {
                           e.preventDefault();
-                          const formData = new FormData(
-                            e.target as HTMLFormElement,
-                          );
-                          formData.forEach((value, key) => {
-                            console.log(key, value);
-                          });
-                          storage.setCloudinarySettings(
-                            formData.get("cloud_name") as string,
-                            formData.get("unsigned_preset") as string,
-                          );
-                          window.location.reload();
+                          try {
+                            const formData = new FormData(
+                              e.target as HTMLFormElement,
+                            );
+                            await storage.setCloudinarySettings(
+                              formData.get("cloud_name") as string,
+                              formData.get("unsigned_preset") as string,
+                            );
+                            window.location.reload();
+                          } catch (error) {
+                            alert(`Failed to save Cloudinary settings: ${error instanceof Error ? error.message : "Unknown error"}`);
+                          }
                         }}>
                         <input
                           type="text"

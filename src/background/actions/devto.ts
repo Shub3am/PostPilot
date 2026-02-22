@@ -1,7 +1,9 @@
 import { storage } from "../../utils/storage";
 import type { historyItem, PostPilotStorage } from "../../utils/types";
 import { UploadBase64ToCloudinary } from "../../utils/utils";
-// Using dev.to version V1
+
+// Using dev.to API version V1
+// Documentation: https://developers.forem.com/api/v1
 
 type devToUser = {
   type_of: "user";
@@ -17,6 +19,12 @@ type devToUser = {
   profile_image: string;
 };
 
+/**
+ * Tests the connection to Dev.to API using the stored API key
+ * Fetches user information to verify the token is valid
+ * Updates the connection status in storage
+ * Sends a message to reload the settings page after completion
+ */
 export async function testDevtoConnection() {
   const storageData = await storage.getStorage();
   const token = checkToken(storageData);
@@ -34,12 +42,10 @@ export async function testDevtoConnection() {
       return response.json();
     })
     .catch((error) => {
-      console.log(error);
       throw new Error(
-        `Error verifying dev.to token. Please check the console for more details. ${error}`,
+        `Error verifying dev.to token: ${error}`,
       );
     });
-  console.log("Dev.to user info:", getUser);
   if (!getUser) {
     storageData.settings.connectionStatus.devto = {
       profile_name: null,
@@ -60,17 +66,45 @@ export async function testDevtoConnection() {
   chrome.runtime.sendMessage({ type: "DEVTO_CONNECTION_CHECK_DONE" });
 }
 
+/**
+ * Disconnects the Dev.to integration by resetting the connection status
+ * Clears profile information and reloads the page to reflect changes
+ */
 export async function disconnectDevto() {
-  const data = await storage.getSettings();
-  data.connectionStatus.devto = {
-    profile_name: null,
-    profile_image: null,
-    status: "not_connected",
-  };
-  await storage.setSettings(data);
-  window.location.reload();
+  try {
+    const data = await storage.getSettings();
+    data.connectionStatus.devto = {
+      profile_name: null,
+      profile_image: null,
+      status: "not_connected",
+    };
+    await storage.setSettings(data);
+    window.location.reload();
+  } catch (error) {
+    alert(`Failed to disconnect Dev.to: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
 }
 
+/**
+ * Publishes an article to Dev.to using their API
+ * 
+ * @param postData - The post data including title, content, image, and tags
+ * 
+ * Dev.to API schema for article publishing (V1):
+ * {
+ *   "article": {
+ *     "title": "string",
+ *     "body_markdown": "string",
+ *     "published": boolean,
+ *     "series": "string",
+ *     "main_image": "string",
+ *     "canonical_url": "string",
+ *     "description": "string",
+ *     "tags": "string",
+ *     "organization_id": number
+ *   }
+ * }
+ */
 /* dev.to publish article api schema for V1
 request
 {
@@ -92,7 +126,7 @@ export async function postToDevto(postData: historyItem) {
   const uploadedImageUrl = image ? await UploadBase64ToCloudinary(image) : null;
   const storageData = await storage.getStorage();
   const token = checkToken(storageData);
-  console.log("Posting to dev.to with data:", postData);
+  
   const articleData = {
     article: {
       title: title,
@@ -102,7 +136,7 @@ export async function postToDevto(postData: historyItem) {
       tags: tags.slice(0, 4), // dev.to allows max 4 tags, so we take the first 4
     },
   };
-  console.log("Constructed article data for dev.to:", articleData);
+  
   const publishArticle: ArticleResponse = await fetch(
     "https://dev.to/api/articles",
     {
@@ -115,7 +149,6 @@ export async function postToDevto(postData: historyItem) {
     },
   )
     .then((response) => {
-      console.log("Dev.to API response status:", response);
       if (!response.ok) {
         throw new Error("Failed to publish article to dev.to.");
       }
@@ -127,13 +160,10 @@ export async function postToDevto(postData: historyItem) {
       return response.json();
     })
     .catch((error) => {
-      console.log(error);
       throw new Error(
-        `Error publishing article to dev.to. Please check the console for more details. ${error}`,
+        `Error publishing article to dev.to: ${error}`,
       );
     });
-
-  console.log(publishArticle);
 
   storage.addPostHistory({
     postedOn: "dev.to",
@@ -144,6 +174,12 @@ export async function postToDevto(postData: historyItem) {
   });
 }
 
+/**
+ * Validates and retrieves the Dev.to API token from storage
+ * @param storage - The PostPilot storage object containing settings
+ * @returns The Dev.to API token
+ * @throws Error if the token is missing
+ */
 function checkToken(storage: PostPilotStorage): string {
   const token = storage.settings.tokens.devto;
   if (!token) {

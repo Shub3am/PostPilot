@@ -16,7 +16,7 @@
   "background": {
     "service_worker": "src/background/background.ts"
   },
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "activeTab", "scripting", "notifications"],
   "host_permissions": ["*://*.linkedin.com/*", "*://*.x.com/*", "*://*.dev.to/*"],
   "content_scripts": [
     {

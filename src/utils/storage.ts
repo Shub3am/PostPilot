@@ -93,6 +93,13 @@ class Storage {
     }
     return connectedPlatforms;
   }
+
+  /**
+   * Sets Cloudinary configuration for image uploads
+   * Required for Dev.to image uploads as they need external image URLs
+   * @param cloud_name - The Cloudinary cloud name
+   * @param unsigned_preset - The unsigned upload preset name
+   */
   async setCloudinarySettings(
     cloud_name: string,
     unsigned_preset: string,

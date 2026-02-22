@@ -1,5 +1,9 @@
 import { storage } from "../../utils/storage";
 
+/**
+ * Tests the Twitter/X connection by opening a tab and sending a test message
+ * Creates a new tab, waits for it to load, then sends a message to run the connection test
+ */
 export function testTwitterConnection() {
   chrome.tabs.create(
     {
@@ -28,6 +32,12 @@ export function testTwitterConnection() {
   );
 }
 
+/**
+ * Posts content to Twitter/X by opening the compose tweet page
+ * Verifies connection before posting and sends post data to the content script
+ * @param post - The post data including title, content, tags, and optional image
+ * @throws Error if not connected to Twitter
+ */
 export async function postToTwitter(post: {
   title: string;
   content: string;
@@ -39,8 +49,7 @@ export async function postToTwitter(post: {
     !data.connectionStatus.twitter ||
     data.connectionStatus.twitter.status !== "connected"
   ) {
-    console.error("Not connected to Twitter");
-    return;
+    throw new Error("Not connected to Twitter. Please check your connection in settings.");
   }
 
   chrome.tabs.create(
@@ -71,6 +80,11 @@ export async function postToTwitter(post: {
   );
 }
 
+/**
+ * Saves the posted Twitter content to history and closes the tab
+ * @param payload - The post data that was published
+ * @param tabId - Optional tab ID to close after posting
+ */
 export async function postedToTwitter(
   payload: {
     title: string;
@@ -91,6 +105,11 @@ export async function postedToTwitter(
   }
 }
 
+/**
+ * Updates the Twitter connection status in storage after a connection check
+ * @param payload - Connection status data including profile name, image, and status
+ * @param tabId - Optional tab ID to close after the check completes
+ */
 export async function checkTwitterConnection(
   payload: {
     profile_name: string | undefined;
@@ -111,13 +130,21 @@ export async function checkTwitterConnection(
   }
 }
 
+/**
+ * Disconnects the Twitter integration by resetting the connection status
+ * Clears profile information and reloads the page to reflect changes
+ */
 export async function disconnectTwitter() {
-  const data = await storage.getSettings();
-  data.connectionStatus.twitter = {
-    profile_name: null,
-    profile_image: null,
-    status: "not_connected",
-  };
-  await storage.setSettings(data);
-  window.location.reload();
+  try {
+    const data = await storage.getSettings();
+    data.connectionStatus.twitter = {
+      profile_name: null,
+      profile_image: null,
+      status: "not_connected",
+    };
+    await storage.setSettings(data);
+    window.location.reload();
+  } catch (error) {
+    alert(`Failed to disconnect Twitter: ${error instanceof Error ? error.message : "Unknown error"}`);
+  }
 }

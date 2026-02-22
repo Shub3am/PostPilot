@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { storage } from "../utils/storage";
 import { Upload, X, Send } from "lucide-react";
+
+/**
+ * Draft page component for creating and publishing posts to social media platforms
+ * Allows users to compose content, add images, and select which platforms to post to
+ * Supports LinkedIn, Twitter/X, and Dev.to integrations
+ */
 export default function DraftContent({
   setCurrentPage,
 }: {

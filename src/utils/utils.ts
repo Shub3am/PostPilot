@@ -56,6 +56,14 @@ export async function typeLikeUser(editor: HTMLElement, text: string) {
   }
 }
 
+/**
+ * Uploads a base64-encoded image to Cloudinary
+ * Uses the unsigned upload preset configured in settings
+ *
+ * @param base64 - The base64-encoded image data (data URI format)
+ * @returns The secure URL of the uploaded image on Cloudinary
+ * @throws Error if the Cloudinary upload fails
+ */
 export async function UploadBase64ToCloudinary(base64: string) {
   const storageData = await storage.getStorage();
   const cloudName = storageData.settings.cloudinary.cloud_name;
@@ -80,4 +88,20 @@ export async function UploadBase64ToCloudinary(base64: string) {
 
   const data = await response.json();
   return data.secure_url; // <-- THIS is what you use as main_image
+}
+
+/**
+ * Shows an error notification to the user using Chrome notifications API
+ * @param title - The notification title
+ * @param message - The error message to display
+ */
+export function showErrorNotification(title: string, message: string) {
+  chrome.notifications.create({
+    type: "basic",
+    iconUrl:
+      "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><rect width='128' height='128' fill='%23ef4444'/><text x='64' y='80' font-size='72' text-anchor='middle' fill='white'>!</text></svg>",
+    title,
+    message,
+    priority: 2,
+  });
 }

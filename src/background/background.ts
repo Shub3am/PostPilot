@@ -16,6 +16,7 @@ import {
   postToTwitter,
   testTwitterConnection,
 } from "./actions/twitter";
+import { showErrorNotification } from "../utils/utils";
 
 /*
  * @listens chrome.action.onClicked - Opens the extension page when the extension icon is clicked
@@ -26,12 +27,20 @@ chrome.action.onClicked.addListener(() => {
   });
 });
 
+// Map of platform names to their corresponding post functions
 const postFunctions: { [key: string]: Function } = {
   twitter: postToTwitter,
   linkedin: postToLinkedin,
   devto: postToDevto,
 };
 
+/**
+ * Message listener for communication between content scripts and the extension background
+ * Handles various message types for:
+ * - Connection testing and verification for each platform
+ * - Post completion notifications
+ * - Creating and distributing posts to selected platforms
+ */
 /* 
 This listener handles various message types related to checking connections, posting content, and more.
 
@@ -39,7 +48,7 @@ Message listener for communication between content scripts and the extension's b
 
 */
 chrome.runtime.onMessage.addListener(
-  (message, sender: chrome.runtime.MessageSender) => {
+  async (message, sender: chrome.runtime.MessageSender) => {
     switch (message.type) {
       case "TWITTER_CONNECTION_CHECK_DONE":
         checkTwitterConnection(message.payload, sender?.tab?.id);
@@ -56,28 +65,62 @@ chrome.runtime.onMessage.addListener(
         break;
 
       case "CREATE_POST":
+        // Post to all selected platforms asynchronously
         message.payload.platforms.forEach(async (platform: string) => {
           const postFunction = postFunctions[platform.toLowerCase()];
           if (postFunction) {
-            await postFunction(message.payload);
+            try {
+              await postFunction(message.payload);
+            } catch (error) {
+              showErrorNotification(
+                `Failed to post to ${platform}`,
+                error instanceof Error
+                  ? error.message
+                  : "An unknown error occurred",
+              );
+            }
           }
         });
-        // For testing, we can also call both directly:
-        // postToLinkedin(message.payload);
-        // postToTwitter(message.payload);
         break;
 
       case "CHECK_TWITTER_CONNECTION":
-        testTwitterConnection();
+        try {
+          testTwitterConnection();
+        } catch (error) {
+          showErrorNotification(
+            "Twitter Connection Failed",
+            error instanceof Error
+              ? error.message
+              : "Failed to test Twitter connection",
+          );
+        }
         break;
       case "CHECK_LINKEDIN_CONNECTION":
-        testLinkedinConnection();
+        try {
+          testLinkedinConnection();
+        } catch (error) {
+          showErrorNotification(
+            "LinkedIn Connection Failed",
+            error instanceof Error
+              ? error.message
+              : "Failed to test LinkedIn connection",
+          );
+        }
         break;
       case "CHECK_DEVTO_CONNECTION":
-        testDevtoConnection();
+        try {
+          await testDevtoConnection();
+        } catch (error) {
+          showErrorNotification(
+            "Dev.to Connection Failed",
+            error instanceof Error
+              ? error.message
+              : "Failed to test Dev.to connection",
+          );
+        }
         break;
       default:
-        console.warn("Unknown message type:", message.type);
+        break;
     }
   },
 );
