@@ -91,11 +91,24 @@ export async function UploadBase64ToCloudinary(base64: string) {
 }
 
 /**
- * Shows an error notification to the user using Chrome notifications API
+ * Shows an error notification to the user within the extension UI
+ * Sends a message to all extension pages to display a toast notification
+ * Also creates a Chrome system notification as fallback
  * @param title - The notification title
  * @param message - The error message to display
  */
-export function showErrorNotification(title: string, message: string) {
+export function showNotification(title: string, message: string) {
+  // Send message to extension pages for in-page toasts
+  chrome.runtime
+    .sendMessage({
+      type: "SHOW_NOTIFICATION",
+      payload: { title, message },
+    })
+    .catch(() => {
+      // Extension page might not be open, that's okay
+    });
+
+  // Also create system notification as backup
   chrome.notifications.create({
     type: "basic",
     iconUrl:

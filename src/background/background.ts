@@ -16,7 +16,13 @@ import {
   postToTwitter,
   testTwitterConnection,
 } from "./actions/twitter";
-import { showErrorNotification } from "../utils/utils";
+import { showNotification } from "../utils/utils";
+import {
+  checkMediumConnection,
+  postedToMedium,
+  postToMedium,
+  testMediumConnection,
+} from "./actions/medium";
 
 /*
  * @listens chrome.action.onClicked - Opens the extension page when the extension icon is clicked
@@ -32,6 +38,7 @@ const postFunctions: { [key: string]: Function } = {
   twitter: postToTwitter,
   linkedin: postToLinkedin,
   devto: postToDevto,
+  medium: postToMedium,
 };
 
 /**
@@ -52,9 +59,33 @@ chrome.runtime.onMessage.addListener(
     switch (message.type) {
       case "TWITTER_CONNECTION_CHECK_DONE":
         checkTwitterConnection(message.payload, sender?.tab?.id);
+        // Show notification if connection failed
+        if (message.payload.status === "not_connected") {
+          showNotification(
+            "Twitter Connection Failed",
+            "Please log in to Twitter/X and try again",
+          );
+        }
         break;
       case "LINKEDIN_CONNECTION_CHECK_DONE":
         checkLinkedinConnection(message.payload, sender?.tab?.id);
+        // Show notification if connection failed
+        if (message.payload.status === "not_connected") {
+          showNotification(
+            "LinkedIn Connection Failed",
+            "Please log in to LinkedIn and try again",
+          );
+        }
+        break;
+      case "MEDIUM_CONNECTION_CHECK_DONE":
+        checkMediumConnection(message.payload, sender?.tab?.id);
+        // Show notification if connection failed
+        if (message.payload.status === "not_connected") {
+          showNotification(
+            "Medium Connection Failed",
+            "Please log in to Medium and try again",
+          );
+        }
         break;
 
       case "LINKEDIN_POST_DONE":
@@ -62,6 +93,9 @@ chrome.runtime.onMessage.addListener(
         break;
       case "TWITTER_POST_DONE":
         postedToTwitter(message.payload, sender?.tab?.id);
+        break;
+      case "MEDIUM_POST_DONE":
+        postedToMedium(message.payload, sender?.tab?.id);
         break;
 
       case "CREATE_POST":
@@ -72,7 +106,7 @@ chrome.runtime.onMessage.addListener(
             try {
               await postFunction(message.payload);
             } catch (error) {
-              showErrorNotification(
+              showNotification(
                 `Failed to post to ${platform}`,
                 error instanceof Error
                   ? error.message
@@ -84,34 +118,16 @@ chrome.runtime.onMessage.addListener(
         break;
 
       case "CHECK_TWITTER_CONNECTION":
-        try {
-          testTwitterConnection();
-        } catch (error) {
-          showErrorNotification(
-            "Twitter Connection Failed",
-            error instanceof Error
-              ? error.message
-              : "Failed to test Twitter connection",
-          );
-        }
+        testTwitterConnection();
         break;
       case "CHECK_LINKEDIN_CONNECTION":
-        try {
-          testLinkedinConnection();
-        } catch (error) {
-          showErrorNotification(
-            "LinkedIn Connection Failed",
-            error instanceof Error
-              ? error.message
-              : "Failed to test LinkedIn connection",
-          );
-        }
+        testLinkedinConnection();
         break;
       case "CHECK_DEVTO_CONNECTION":
         try {
           await testDevtoConnection();
         } catch (error) {
-          showErrorNotification(
+          showNotification(
             "Dev.to Connection Failed",
             error instanceof Error
               ? error.message
@@ -119,6 +135,10 @@ chrome.runtime.onMessage.addListener(
           );
         }
         break;
+      case "CHECK_MEDIUM_CONNECTION":
+        testMediumConnection();
+        break;
+
       default:
         break;
     }

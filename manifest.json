@@ -17,7 +17,7 @@
     "service_worker": "src/background/background.ts"
   },
   "permissions": ["storage", "activeTab", "scripting", "notifications"],
-  "host_permissions": ["*://*.linkedin.com/*", "*://*.x.com/*", "*://*.dev.to/*"],
+  "host_permissions": ["*://*.linkedin.com/*", "*://*.x.com/*", "*://*.dev.to/*", "*://*.medium.com/*"],
   "content_scripts": [
     {
       "matches": ["*://*.linkedin.com/*"],
@@ -26,6 +26,10 @@
     {
       "matches": ["*://*.x.com/*"],
       "js": ["src/platforms/twitter/scrape/post.ts"]
+    },
+    {
+      "matches": ["*://*.medium.com/*"],
+      "js": ["src/platforms/medium/scrape/post.ts"]
     }
 
   ]

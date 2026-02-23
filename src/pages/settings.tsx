@@ -4,10 +4,11 @@ import { storage } from "../utils/storage";
 import { disconnectTwitter } from "../background/actions/twitter";
 import { disconnectLinkedin } from "../background/actions/linkedin";
 import { disconnectDevto } from "../background/actions/devto";
+import { disconnectMedium } from "../background/actions/medium";
 
 /**
  * Settings page component for managing platform connections and tokens
- * Handles configuration for LinkedIn, Twitter/X, and Dev.to integrations
+ * Handles configuration for LinkedIn, Twitter/X, Dev.to, and Medium integrations
  */
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>(default_storage.settings);
@@ -15,7 +16,7 @@ export default function SettingsPage() {
     message: string;
     isError: boolean;
   } | null>(null);
-  
+
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -26,7 +27,7 @@ export default function SettingsPage() {
       }
     };
     loadSettings();
-    
+
     /**
      * Listen for connection check completion messages from the background service worker
      * When a platform connection check is done (e.g., LINKEDIN_CONNECTION_CHECK_DONE),
@@ -34,7 +35,7 @@ export default function SettingsPage() {
      */
     chrome.runtime.onMessage.addListener((message) => {
       if (message.type.includes("CHECK_DONE")) {
-        window.location.reload();
+        // window.location.reload();
       }
     });
   }, []);
@@ -118,20 +119,21 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               {settings.methods.linkedin === "api" && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Token
-                  </label>
-                  <input
-                    type="password"
-                    value={settings.tokens.linkedin}
-                    onChange={(e) =>
-                      handleTokenChange("linkedin", e.target.value)
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    placeholder="Enter LinkedIn token"
-                  />
-                </div>
+                <div>API Mode is work in progress</div>
+                // <div>
+                //   <label className="block text-sm font-medium mb-1">
+                //     Token
+                //   </label>
+                //   <input
+                //     type="password"
+                //     value={settings.tokens.linkedin}
+                //     onChange={(e) =>
+                //       handleTokenChange("linkedin", e.target.value)
+                //     }
+                //     className="w-full p-2 border border-gray-300 rounded-md"
+                //     placeholder="Enter LinkedIn token"
+                //   />
+                // </div>
               )}
               {settings.methods.linkedin === "scrape" && (
                 <div>
@@ -200,20 +202,22 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <div>
               {settings.methods.twitter === "api" && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Token
-                  </label>
-                  <input
-                    type="password"
-                    value={settings.tokens.twitter}
-                    onChange={(e) =>
-                      handleTokenChange("twitter", e.target.value)
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    placeholder="Enter Twitter token"
-                  />
-                </div>
+                <div>API Mode is work in progress</div>
+
+                // <div>
+                //   <label className="block text-sm font-medium mb-1">
+                //     Token
+                //   </label>
+                //   <input
+                //     type="password"
+                //     value={settings.tokens.twitter}
+                //     onChange={(e) =>
+                //       handleTokenChange("twitter", e.target.value)
+                //     }
+                //     className="w-full p-2 border border-gray-300 rounded-md"
+                //     placeholder="Enter Twitter token"
+                //   />
+                // </div>
               )}
               {settings.methods.twitter === "scrape" && (
                 <div>
@@ -364,7 +368,9 @@ export default function SettingsPage() {
                             );
                             window.location.reload();
                           } catch (error) {
-                            alert(`Failed to save Cloudinary settings: ${error instanceof Error ? error.message : "Unknown error"}`);
+                            alert(
+                              `Failed to save Cloudinary settings: ${error instanceof Error ? error.message : "Unknown error"}`,
+                            );
                           }
                         }}>
                         <input
@@ -398,6 +404,92 @@ export default function SettingsPage() {
             <div>
               <label className="block text-sm font-medium mb-1">Method</label>
               <label htmlFor="devto-method">API</label>
+            </div>
+          </div>
+        </div>
+
+        {/* Medium */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold mb-4">Medium</h3>
+          <div className="space-y-4">
+            <div>
+              {settings.methods.medium === "api" && (
+                <div>API Mode is work in progress</div>
+
+                // <div>
+                //   <label className="block text-sm font-medium mb-1">
+                //     Token
+                //   </label>
+                //   <input
+                //     type="password"
+                //     value={settings.tokens.medium}
+                //     onChange={(e) =>
+                //       handleTokenChange("medium", e.target.value)
+                //     }
+                //     className="w-full p-2 border border-gray-300 rounded-md"
+                //     placeholder="Enter Medium token"
+                //   />
+                // </div>
+              )}
+              {settings.methods.medium === "scrape" && (
+                <div>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-md">
+                    {settings.connectionStatus.medium.profile_image && (
+                      <img
+                        width={36}
+                        height={36}
+                        src={settings.connectionStatus.medium.profile_image}
+                        alt="Medium Profile"
+                        className="rounded-full"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-sm">
+                        {settings.connectionStatus.medium.profile_name}
+                      </h4>
+                      <p className="text-xs text-gray-600">
+                        Status:{" "}
+                        {settings.connectionStatus.medium.status
+                          .split("_")
+                          .join(" ")}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    className={`p-2 rounded-lg m-2 ${settings.connectionStatus.medium.status === "connected" ? "bg-green-300" : "bg-amber-300"}`}
+                    onClick={() => {
+                      chrome.runtime.sendMessage({
+                        type: "CHECK_MEDIUM_CONNECTION",
+                      });
+                    }}>
+                    {settings.connectionStatus.medium.status === "connected"
+                      ? "Recheck Connection"
+                      : "Check Connection"}
+                  </button>
+                  {settings.connectionStatus.medium.status === "connected" && (
+                    <button
+                      onClick={disconnectMedium}
+                      className="bg-red-600 p-2 rounded-lg m-2 text-white hover:bg-red-700">
+                      Disconnect
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Method</label>
+              <select
+                value={settings.methods.medium}
+                onChange={(e) =>
+                  handleMethodChange(
+                    "medium",
+                    e.target.value as "scrape" | "api",
+                  )
+                }
+                className="w-full p-2 border border-gray-300 rounded-md">
+                <option value="scrape">Scrape</option>
+                <option value="api">API</option>
+              </select>
             </div>
           </div>
         </div>

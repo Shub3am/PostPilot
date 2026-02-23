@@ -7,6 +7,7 @@ import {
 import DraftContent from "../pages/draft";
 import Settings from "../pages/settings";
 import History from "../pages/history";
+import { NotificationProvider } from "./NotificationProvider";
 
 type Page = "draft" | "settings" | "history";
 
@@ -44,6 +45,7 @@ export function Layout() {
 
   return (
     <div className="flex flex-col bg-gray-50">
+      <NotificationProvider />
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
         <h1 className="text-xl font-semibold text-gray-900">PostPilot</h1>

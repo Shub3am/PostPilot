@@ -3,15 +3,17 @@ type Settings = {
     linkedin: string;
     twitter: string;
     devto: string;
+    medium: string;
   };
   cloudinary: {
     unsigned_preset: string;
     cloud_name: string;
   };
   methods: {
-    linkedin: "scrape" | "api";
-    twitter: "scrape" | "api";
+    linkedin: "scrape";
+    twitter: "scrape";
     devto: "api";
+    medium: "scrape";
   };
 
   connectionStatus: {
@@ -26,6 +28,11 @@ type Settings = {
       status: "connected" | "not_connected";
     };
     devto: {
+      profile_name: string | null;
+      profile_image: string | null;
+      status: "connected" | "not_connected";
+    };
+    medium: {
       profile_name: string | null;
       profile_image: string | null;
       status: "connected" | "not_connected";
@@ -56,11 +63,13 @@ export const default_storage: PostPilotStorage = {
       linkedin: "",
       twitter: "",
       devto: "",
+      medium: "",
     },
     methods: {
       linkedin: "scrape",
       twitter: "scrape",
       devto: "api",
+      medium: "scrape",
     },
     connectionStatus: {
       linkedin: {
@@ -74,6 +83,11 @@ export const default_storage: PostPilotStorage = {
         status: "not_connected",
       },
       devto: {
+        profile_name: null,
+        profile_image: null,
+        status: "not_connected",
+      },
+      medium: {
         profile_name: null,
         profile_image: null,
         status: "not_connected",
