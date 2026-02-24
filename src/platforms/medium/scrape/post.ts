@@ -66,9 +66,11 @@ async function handleMediumConnectionTest() {
       );
     }
     await delay(1000); // Wait for profile page to load,
-    const profileName: string = document
-      .querySelector(".pw-author-name")
-      ?.textContent?.trim();
+    const profileName: string = (
+      document
+        .querySelector(".pw-author-name")
+        ?.textContent?.trim() || ""
+    );
 
     const profileTag: string = window.location.pathname.slice(1); // slices pathname:https://medium.com/@test to get @test from pathname: /@test
 
@@ -121,11 +123,11 @@ async function handleMediumPost(payload: {
     // Navigate to new story page
 
     // Wait for the title editor to be available
-    const titleEditor = await waitForElement(
+    const titleEditor = (await waitForElement(
       '[data-testid="editorTitleParagraph"]',
-    );
+    )) as HTMLElement;
     if (image) {
-      (titleEditor as HTMLElement).dispatchEvent(
+      titleEditor.dispatchEvent(
         new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
       );
 

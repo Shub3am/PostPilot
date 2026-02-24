@@ -10,10 +10,10 @@ type Settings = {
     cloud_name: string;
   };
   methods: {
-    linkedin: "scrape";
-    twitter: "scrape";
+    linkedin: "scrape" | "api";
+    twitter: "scrape" | "api";
     devto: "api";
-    medium: "scrape";
+    medium: "scrape" | "api";
   };
 
   connectionStatus: {

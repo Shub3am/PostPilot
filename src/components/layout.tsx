@@ -9,7 +9,7 @@ import Settings from "../pages/settings";
 import History from "../pages/history";
 import { NotificationProvider } from "./NotificationProvider";
 
-type Page = "draft" | "settings" | "history";
+export type Page = "draft" | "settings" | "history";
 
 const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
   {

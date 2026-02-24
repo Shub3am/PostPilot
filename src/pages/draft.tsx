@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { storage } from "../utils/storage";
 import { Upload, X, Send } from "lucide-react";
 
+import type { Page } from "../components/layout";
+
 /**
  * Draft page component for creating and publishing posts to social media platforms
  * Allows users to compose content, add images, and select which platforms to post to
@@ -10,7 +12,7 @@ import { Upload, X, Send } from "lucide-react";
 export default function DraftContent({
   setCurrentPage,
 }: {
-  setCurrentPage: React.Dispatch<React.SetStateAction<string>>;
+  setCurrentPage: React.Dispatch<React.SetStateAction<Page>>;
 }) {
   const [image, setImage] = useState<string | null>(null);
   const [title, setTitle] = useState("");
