@@ -1,0 +1,119 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build output
+dist/
+dist-ssr/
+build/
+*.js.map
+*.css.map
+
+
+# IDE and editor files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.env
+.env.local
+.env.*.local
+*.local
+
+# IDE specific
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Testing
+playwright-report/
+.test-cache/
+
+# Credentials and secrets
+.env
+.env.*.local
+secrets/
+credentials.json
+api-keys.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Extension specific
+*.crx
+*.pem
+*.zip
+
+# Development
+.vite/
+
+# Node modules cache
+.npm/
+.pnpm-store/
+
+# Ignore specific files that might contain sensitive data
+src/secrets/
+src/credentials/
+
+# IDE workspace settings
+.vscode/settings.json
+.vscode/extensions.json
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msBundle
+*.msp
+*.lnk
+
+# Linux
+.directory
+
+# Extension manifest lock files
+manifest.lock

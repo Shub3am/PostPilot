@@ -99,22 +99,67 @@ chrome.runtime.onMessage.addListener(
         break;
 
       case "CREATE_POST":
-        // Post to all selected platforms asynchronously
-        message.payload.platforms.forEach(async (platform: string) => {
-          const postFunction = postFunctions[platform.toLowerCase()];
-          if (postFunction) {
-            try {
-              await postFunction(message.payload);
-            } catch (error) {
-              showNotification(
-                `Failed to post to ${platform}`,
-                error instanceof Error
-                  ? error.message
-                  : "An unknown error occurred",
-              );
-            }
-          }
-        });
+        // Dispatch posting to all selected platforms and summarize outcomes.
+        {
+          const platforms: string[] = message.payload.platforms ?? [];
+
+          const settledResults = await Promise.allSettled(
+            platforms.map(async (platform) => {
+              const postFunction = postFunctions[platform.toLowerCase()];
+
+              if (!postFunction) {
+                throw {
+                  platform,
+                  error: new Error("No posting handler configured"),
+                };
+              }
+
+              try {
+                await postFunction(message.payload);
+              } catch (error) {
+                throw { platform, error };
+              }
+
+              return { platform };
+            }),
+          );
+
+          const failedResults = settledResults
+            .filter(
+              (result): result is PromiseRejectedResult =>
+                result.status === "rejected",
+            )
+            .map((result) => {
+              const reason = result.reason as {
+                platform?: string;
+                error?: unknown;
+              };
+
+              return {
+                platform: reason.platform ?? "unknown",
+                error: reason.error,
+              };
+            });
+
+          failedResults.forEach(({ platform, error }) => {
+            showNotification(
+              `Failed to post to ${platform}`,
+              error instanceof Error
+                ? error.message
+                : "An unknown error occurred",
+            );
+          });
+
+          const successCount = settledResults.filter(
+            (result) => result.status === "fulfilled",
+          ).length;
+          const failedCount = failedResults.length;
+
+          showNotification(
+            "Post dispatch completed",
+            `Success: ${successCount}, Failed: ${failedCount}`,
+          );
+        }
         break;
 
       case "CHECK_TWITTER_CONNECTION":

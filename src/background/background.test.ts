@@ -94,13 +94,15 @@ describe("background message routing", () => {
       {} as chrome.runtime.MessageSender,
     );
 
-    await Promise.resolve();
-
     expect(mocked.postToTwitter).toHaveBeenCalledTimes(1);
     expect(mocked.postToLinkedin).toHaveBeenCalledTimes(1);
+    expect(mocked.showNotification).toHaveBeenCalledWith(
+      "Post dispatch completed",
+      "Success: 2, Failed: 0",
+    );
   });
 
-  it("shows notification when platform posting fails", async () => {
+  it("shows failure notification and final summary when a platform fails", async () => {
     mocked.postToMedium.mockRejectedValue(new Error("post failed"));
 
     const { messageListener } = await loadBackgroundListener();
@@ -119,11 +121,45 @@ describe("background message routing", () => {
       {} as chrome.runtime.MessageSender,
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
     expect(mocked.showNotification).toHaveBeenCalledWith(
       "Failed to post to medium",
       "post failed",
+    );
+    expect(mocked.showNotification).toHaveBeenCalledWith(
+      "Post dispatch completed",
+      "Success: 0, Failed: 1",
+    );
+  });
+
+  it("continues posting to other platforms when one fails", async () => {
+    mocked.postToTwitter.mockResolvedValue(undefined);
+    mocked.postToMedium.mockRejectedValue(new Error("medium failed"));
+
+    const { messageListener } = await loadBackgroundListener();
+
+    await messageListener(
+      {
+        type: "CREATE_POST",
+        payload: {
+          title: "t",
+          content: "c",
+          tags: ["tag"],
+          image: null,
+          platforms: ["twitter", "medium"],
+        },
+      },
+      {} as chrome.runtime.MessageSender,
+    );
+
+    expect(mocked.postToTwitter).toHaveBeenCalledTimes(1);
+    expect(mocked.postToMedium).toHaveBeenCalledTimes(1);
+    expect(mocked.showNotification).toHaveBeenCalledWith(
+      "Failed to post to medium",
+      "medium failed",
+    );
+    expect(mocked.showNotification).toHaveBeenCalledWith(
+      "Post dispatch completed",
+      "Success: 1, Failed: 1",
     );
   });
 
