@@ -118,6 +118,26 @@ This will start the Vite development server. After making changes:
 1. The extension will automatically reload
 2. Visit the extension popup or options page to see your changes
 
+### Automated Testing
+
+Run the automated test suite:
+
+```bash
+pnpm test
+```
+
+Run tests in watch mode:
+
+```bash
+pnpm test:watch
+```
+
+Generate coverage report:
+
+```bash
+pnpm test:coverage
+```
+
 ## Usage
 
 ### Creating Your First Post
