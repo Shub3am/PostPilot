@@ -2,6 +2,12 @@
 
 A powerful Chrome extension that allows you to automate and schedule social media posts across multiple platforms directly from your browser.
 
+## Demo
+
+[![PostPilot demo](docs/demo/demo.gif)](docs/demo/demo.mp4)
+
+The unpacked extension loaded in Chromium: browsing History and Settings, running a LinkedIn connection check while logged out, then drafting a post with an image, title, content and tags, stopping before Create Post.
+
 ## What is PostPilot?
 
 PostPilot is a browser extension designed to streamline your social media workflow. Instead of manually posting on each platform, PostPilot lets you:
